@@ -24,8 +24,8 @@ def basic_irregular(stopTime, numPoints, numSelPoints):
     return data_mat, resp_mat, time_vec
 
 def plot_predicted_series(lstm_model, data_mat, resp_mat, time_vec, it_num, n_prev, base_path):
-    plt.plot(time_vec, lstm_model.predict(data_mat)[0], label='Predicted' )
-    plt.plot(time_vec, resp_mat, label='Actual')
+    plt.plot(time_vec, lstm_model.predict(data_mat)[0], marker='.', label='Predicted' )
+    plt.plot(time_vec, resp_mat, marker='.', label='Actual')
     plt.title('Predicted plots for size '+str(n_prev)+' and '+str(it_num)+\
             ' training iterations')
     plt.xlabel('Time')
@@ -49,8 +49,22 @@ def plot_error(error_df, n_prev, numCells, base_path, Training=True):
     plt.close()
 
 
+def basic_irregular_noise(stopTime, numPoints, numSelPoints, noiseSD):
+    time = np.linspace(0, stopTime, numPoints)
+    noise = np.random.normal(0, noiseSD, numPoints)
+    data = np.sin(time) + noise
+    index = np.sort(np.random.choice(range(numPoints), size=numSelPoints, replace=False))
+    time_irr = time[index]
+    data_irr = data[index]
+    delta_t = [0] + list(np.array(time_irr[1:]) - np.array(time_irr[:-1]))
+    data_mat = np.matrix([list(data_irr), delta_t]).T
+    data_mat = data_mat[:-1,:]
+    resp_mat = np.matrix(np.roll(data_irr, -1)[:-1]).T
+    time_vec = time_irr[1:]
+    return data_mat, resp_mat, time_vec
+
 graphs_path = os.path.join(os.getcwd(),'graphs')
-store_path = os.path.join(graphs_path, 'basic-irregular-time-intervals')
+store_path = os.path.join(graphs_path, 'basic-irregular-time-intervals-noise')
 pred_path = os.path.join(store_path, 'predicted-graphs')
 err_path = os.path.join(store_path, 'error-graphs')
 if not os.path.isdir(err_path):
@@ -60,7 +74,8 @@ err_path = err_path + '/'
 stopTime = 20
 numPoints = 400
 numSelPoints = 60
-data_mat, resp_mat, time_vec = basic_irregular(stopTime, numPoints, numSelPoints)
+noiseSD = 0.2
+data_mat, resp_mat, time_vec = basic_irregular_noise(stopTime, numPoints, numSelPoints, noiseSD)
 #eta - learning rate
 eta = 0.5
 #alpha - momentum hyperparameter
@@ -78,7 +93,7 @@ for num in numCellArray:
     lstm_model = basicLSTM(2, num_cells=num)
     error_list = []
     for i in range(n_iterations):
-        r_cost = lstm_model.train(data_mat, resp_mat, eta, alpha)
+        r_cost = lstm_model.train(data_mat, resp_mat, alpha)
         error_list.append([i+1, float(r_cost[0])])
         if (i+1)<100 and (i+1)%10 == 0:
             print "iteration: %s, cost: %s" % (i+1, float(r_cost[0]))

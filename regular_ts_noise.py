@@ -6,7 +6,7 @@ import theano.tensor as T
 import pandas as pd
 import matplotlib.pyplot as plt
 from layers import LSTMLayer, InputLayer, FullyConnectedLayer
-from lib import get_params, make_caches, SGD, momentum
+from lib import get_params, make_caches, SGD, momentum, create_optimization_updates
 from basic_lstm import basicLSTM
 import os
 
@@ -49,15 +49,34 @@ def data_generation_noise(stopTime, numPoints, n_prev, noiseSD):
     return data_mat, resp_mat, time_vec[n_prev:]
 
 
+def mv_data_generation_noise(numPoints, L, n_prev, noiseSD):
+    mean = np.zeros(numPoints)
+    vec = np.array([[j for j in range(0,numPoints)] for k in range(0,numPoints)])
+    covMat = np.exp(-(vec - vec.T)**2/float(L**2))
+    noise = np.random.normal(loc=0, scale=noiseSD ,size=numPoints)
+    x = np.random.multivariate_normal(mean, covMat, size=(1,))[0] + noise
+    time_vec = range(numPoints)
+    if n_prev > 1:
+        data = pd.DataFrame({"data":x, "response":x})
+        data.response = data.response.shift(-1)
+        #Not selecting the last point since the response is a Nan
+        data = data.iloc[:-1]
+        data_mat, resp_mat = _load_data(data, n_prev=n_prev)
+    else:
+        data = x
+        data_rolled = np.roll(data, -1)[:-1]
+        data_mat = np.matrix(data[:-1]).T
+        resp_mat = np.matrix(data_rolled).T
+    return data_mat, resp_mat, time_vec[n_prev:]
+    
 def plot_predicted_series(lstm_model, data_mat, resp_mat, time_vec, it_num, n_prev, base_path):
-    plt.plot(time_vec, lstm_model.predict(data_mat)[0], label='Predicted' )
-    plt.plot(time_vec, resp_mat, label='Actual')
+    plt.plot(time_vec, lstm_model.predict(data_mat)[0], marker='.', label='Predicted' )
+    plt.plot(time_vec, resp_mat, marker='.', label='Actual')
     plt.title('Predicted plots for size '+str(n_prev)+' and '+str(it_num)+\
             ' training iterations')
     plt.xlabel('Time')
     plt.ylabel('Magnitude')
-    plt.legend()
-    plt.ylim([-2, 2])
+    plt.legend() 
     plt.savefig(base_path+'predicted_n_prev_'+str(n_prev)+'_iteration_'+str(it_num)+\
             '.png')
     plt.close()
@@ -76,7 +95,7 @@ def plot_error(error_df, n_prev, noiseSD, base_path, Training=True):
 
 
 graphs_path = os.path.join(os.getcwd(),'graphs')
-store_path = os.path.join(graphs_path, 'regular-time-with-noise-test')
+store_path = os.path.join(graphs_path, 'mv-regular-time-with-noise-test-ad')
 pred_path = os.path.join(store_path, 'predicted-graphs')
 err_path = os.path.join(store_path, 'error-graphs')
 if not os.path.isdir(err_path):
@@ -92,13 +111,20 @@ for noise in noise_range:
         os.makedirs(numPath)
     numPath = numPath + '/'
     #Creating the data
+    """
     stopTime = 20
     numPoints = 200
     n_prev = 1
     n_iterations = 1000
     data_mat, resp_mat, time_vec = data_generation_noise(stopTime, numPoints, n_prev, noise)
+    """
+    numPoints = 200
+    L = 20
+    n_prev = 1
+    n_iterations = 5000
+    data_mat, resp_mat, time_vec = mv_data_generation_noise(numPoints, L, n_prev, noise)
     data_mat_tr = data_mat[:numPoints/2,:]
-    resp_mat_tr = resp_mat[:numPoints/2,:]
+    resp_mat_tr = resp_mat[:numPoints/2,:] 
     #Creating the LSTM model
     lstm_model = basicLSTM(n_prev)
     #eta - learning rate
@@ -108,16 +134,21 @@ for noise in noise_range:
 
     error_list = []
     for i in range(n_iterations):
-        r_cost = lstm_model.train(data_mat_tr, resp_mat_tr, eta, alpha)
+        r_cost = lstm_model.train(data_mat_tr, resp_mat_tr, alpha)
         error_list.append([i+1, float(r_cost[0])])
         if (i+1)<100 and (i+1)%10 == 0:
             print "iteration: %s, cost: %s" % (i+1, float(r_cost[0]))
             plot_predicted_series(lstm_model, data_mat, resp_mat,\
                     time_vec, i+1, n_prev, numPath)
-        if (i+1)%100 == 0:
+        if (i+1)%100 == 0 and i<1000:
             print "iteration: %s, cost: %s" % (i+1, float(r_cost[0]))
             plot_predicted_series(lstm_model, data_mat, resp_mat,\
                     time_vec, i+1, n_prev, numPath)
+        if (i+1)%1000 == 0 and i > 1000:
+            print "iteration: %s, cost: %s" % (i+1, float(r_cost[0]))
+            plot_predicted_series(lstm_model, data_mat, resp_mat,\
+                    time_vec, i+1, n_prev, numPath)
+
     error_df = pd.DataFrame(np.array(error_list), columns=['Iteration','Error'])
     error_df = error_df.set_index('Iteration')
     error_df.to_csv(err_path+'error_trajectory_noise_'+str(noise)+'.csv')

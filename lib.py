@@ -2,6 +2,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.ifelse import ifelse
+from collections import OrderedDict
 
 def floatX(X):
     return np.asarray(X, dtype=theano.config.floatX)
@@ -88,3 +89,74 @@ def momentum(cost, params, caches, eta, rho=.1, clip_at=0.0, scale_norm=0.0, lam
         updates.append([p, p - eta * ( delta + lambda2 * p)])
 
     return updates
+
+
+def create_optimization_updates(cost, params, updates=None, max_norm=5.0,
+                                lr=0.01, eps=1e-6, rho=0.95,
+                                method = "adadelta", gradients = None):
+    """
+    Get the updates for a gradient descent optimizer using
+    SGD, AdaDelta, or AdaGrad.
+    Returns the shared variables for the gradient caches,
+    and the updates dictionary for compilation by a
+    theano function.
+    Inputs
+    ------
+    cost     theano variable : what to minimize
+    params   list            : list of theano variables
+                               with respect to which
+                               the gradient is taken.
+    max_norm float           : cap on excess gradients
+    lr       float           : base learning rate for
+                               adagrad and SGD
+    eps      float           : numerical stability value
+                               to not divide by zero
+                               sometimes
+    rho      float           : adadelta hyperparameter.
+    method   str             : 'adagrad', 'adadelta', or 'sgd'.
+    Outputs:
+    --------
+    updates  OrderedDict   : the updates to pass to a
+                             theano function
+    gsums    list          : gradient caches for Adagrad
+                             and Adadelta
+    xsums    list          : gradient caches for AdaDelta only
+    lr       theano shared : learning rate
+    max_norm theano_shared : normalizing clipping value for
+                             excessive gradients (exploding).
+    """
+    lr = theano.shared(np.float64(lr).astype(theano.config.floatX))
+    eps = np.float64(eps).astype(theano.config.floatX)
+    rho = theano.shared(np.float64(rho).astype(theano.config.floatX))
+    if max_norm is not None and max_norm is not False:
+        max_norm = theano.shared(np.float64(max_norm).astype(theano.config.floatX))
+
+    gsums   = [theano.shared(np.zeros_like(param.get_value(borrow=True))) if (method == 'adadelta' or method == 'adagrad') else None for param in params]
+    xsums   = [theano.shared(np.zeros_like(param.get_value(borrow=True))) if method == 'adadelta' else None for param in params]
+
+    gparams = T.grad(cost, params) if gradients is None else gradients
+
+    if updates is None:
+        updates = OrderedDict()
+
+    for gparam, param, gsum, xsum in zip(gparams, params, gsums, xsums):
+        # clip gradients if they get too big
+        if max_norm is not None and max_norm is not False:
+            grad_norm = gparam.norm(L=2)
+            gparam = (T.minimum(max_norm, grad_norm)/ (grad_norm + eps)) * gparam
+
+        if method == 'adadelta':
+            updates[gsum] = T.cast(rho * gsum + (1. - rho) * (gparam **2), theano.config.floatX)
+            dparam = -T.sqrt((xsum + eps) / (updates[gsum] + eps)) * gparam
+            updates[xsum] = T.cast(rho * xsum + (1. - rho) * (dparam **2), theano.config.floatX)
+            updates[param] = T.cast(param + dparam, theano.config.floatX)
+        elif method == 'adagrad':
+            updates[gsum] =  T.cast(gsum + (gparam ** 2), theano.config.floatX)
+            updates[param] =  T.cast(param - lr * (gparam / (T.sqrt(updates[gsum] + eps))), theano.config.floatX)
+        else:
+            updates[param] = param - gparam * lr
+
+    if method == 'adadelta':
+        lr = rho
+
+    return updates, gsums, xsums, lr, max_norm

@@ -1,7 +1,9 @@
 import theano
 import theano.tensor as T
 from layers import LSTMLayer, InputLayer, FullyConnectedLayer
-from lib import get_params, make_caches, SGD, momentum
+from lib import get_params, make_caches, SGD,\
+        momentum, create_optimization_updates
+
 
 class basicLSTM():
 
@@ -27,8 +29,11 @@ class basicLSTM():
         mean_cost = T.mean((Y - Y_hat)**2)
         last_cost = T.mean((Y[-1] - Y_hat[-1])**2)
         self.cost = alpha*mean_cost + (1-alpha)*last_cost
+        """"
         self.updates = momentum(self.cost, self.params, self.caches, self.eta, clip_at=3.0)
-        self.train = theano.function([X, Y, eta, alpha], [self.cost, last_cost] ,\
+        """
+        self.updates,_,_,_,_ = create_optimization_updates(self.cost, self.params, method="adadelta")
+        self.train = theano.function([X, Y, alpha], [self.cost, last_cost] ,\
                 updates=self.updates, allow_input_downcast=True)
         self.costfn = theano.function([X, Y, alpha], [self.cost, last_cost],\
                 allow_input_downcast=True)
