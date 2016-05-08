@@ -1,0 +1,303 @@
+<!DOCTYPE HTML>
+<!--
+	Helios by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Right Sidebar - Helios by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+	<body class="right-sidebar">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<div id="header">
+
+					<!-- Inner -->
+						<div class="inner">
+							<header>
+									<h1><a href="index.html" id="logo">Irregular Noisy Time Series</a></h1>		
+							</header>
+						</div>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="lstm.html">LSTM Models</a></li>
+							</ul>
+						</nav>
+
+				</div>
+
+			<!-- Main -->
+				<div class="wrapper style1">
+
+					<div class="container">
+						<div class="row 200%">
+							<div class="8u 12u(mobile)" id="content">
+								<article id="main">
+									<header>
+										<h2><a href="#">Irregular Time Series Prediction</a></h2>
+										<p>
+											Using Long Short Term Memory Models for Prediction
+										</p>
+									</header>
+									<a href="#" class="image featured"><img src="images/astro-ts/Long_Short_Term_Memory.png" alt="" /></a>
+									<p>
+								    Structure of recurrent neural networks helps the model remember previously seen data and helps make decisions. But a drawback of this model is that after a certain number of time steps, the effect of data on the weights is completely erased and the model gives high priority to the data it has seen most recently. Long short term memory(LSTM) models work a little differently. Though the crux of the model is a recurrent neural network, the way LSTM cell is designed allows it to store information from previous time steps. The data is stored as a cell state which is updated every time a new data point is passed through. This bypasses the vanishing gradient problem which plagues recurrent neural networks. This allows for a possibility of predicting difficult time series using these models. The large number of possibilities in terms of the number of architectures which could effectively work for the current problem. In addition to that, it lays the foundation for adapting machine learning to more obscure fields to solve basic problems.
+	
+									</p>	
+									<p>
+									The amount of data which is remembered by this model is dependent on the size of the cell state which must be chosen clearly. The data we intend to use to train the networks have a small number of points. LSTM requires a model for every object individually. We intend to look for a way we could train a central set of additional weights for the model using all the data available for supernovae. This would prevent the training to be localized for a single object. This should make the model more robust in detecting and predicting supernovae since the  model will now have more to work off of. We still need to inspect if the data should be normalized considering that every star has a different brightness baseline. Hence this problem involves challenges which will force us to look at the LSTM structure more precisely.
+									 </p>	
+									<section>
+										<header>
+											<h2>Testing with Sythentic data</h2>
+										</header>
+										<p>
+											Astronomical data can be abruptly noisy which makes it a hard problem for modern machine learning methods to tackle. Moving from Supernovae to other stars, prediction problems lie for star types like Long period variables and to predict astronomical phenomenon like Micro-lensing. The data is not only noisy but also irregularly spaced. Before implementing the LSTM methods on the astronomical data, it was warranted to test on sythentic data. The synthetic data we use for testing are sinusoidal curves, gaussian processes and impulses. The impulse data serves to simulate supernovae with different light curve gradients.
+										</p>
+                                    </section>
+                                    <section>
+                                        <header>
+											<h3>Synthetic data alone</h3>
+										</header>
+                      
+                                        <p>
+                                        The first level of difficulty is to be able to predict smooth regular sampled periodic data. For illustration, we have a sinusoidal time series. The predicted curve closely follows the actual curve after 200 training iterations. In all cases below, the model is trained only on half the data. The second half is something the model never sees and is a good measure of prediction performance.
+                                        </p>
+                                        <img src="images/syn-data/predicted_n_prev_1_iteration_200.png" alt="" width="400" height="300"/>
+                                    </section>
+                                   <section>
+                                        <header>
+											<h3>Synthetic data with noise</h3>
+										</header>
+                                        <p>
+                                        Next we add gaussian noise to the base time series to test the robustness of the LSTM models. We take a snapshot of the predicted time series along with the training and test error to determine after what training epoch the model is learning noise. Also we study the least time required for us to get achievable results in order to build practical models.
+                                        </p>
+                                        <img src="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" alt="" width="400" height="300"/> 
+									</section>
+                                    <section>
+                                        <header>
+											<h3>Synthetic data with irregular intervals</h3>
+										</header>
+                                        <p>
+                                        Since there are many problems where the data is irregular, it becomes important to see how LSTM's perform. The points for the synthetic irregular time series are randomly sampled from a regular time series. The robustness of the model is tested with sparsely sampled series. Below is a series with 60 points sampled from a 400 time point series.
+                                        </p>
+                                        <img src="images/syn-data/irr_predicted_n_prev_1_iteration_200.png" alt="" width="400" height="300"/> 
+									</section>
+                                    <section>
+                                        <header>
+											<h3>Synthetic data with noise and irregular intervals</h3>
+										</header>
+                                        <p>
+                                        This model gets us closest to the problem we are dealing with. The astronomical time series are noisy due to atmospheric and cosmic conditions. They are irregularly sampled due to no structure in astronomical surveys and dearth of resources. We add noise to a regular time series and irregular samply the series to get our data. As we can see the model does a good job of predicting.
+                                        </p>
+                                        <img src="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" alt="" width="400" height="300"/> 
+									</section>
+
+                                    <section>
+										<header>
+											<h2>Training and Evaluation of LSTM's</h2>
+										</header>
+										<p>
+										With the fast growth in machine learnign research, there have been many new methods to train neural networks. We intended on going step by step up the complexity ladder only if the existing method failed. We tried the vanilla stochastic gradient descent, nesterov's momentum and adadelta(adaptive learning rate algorithm) to train the models. As you can see below, the adadelta method provides stable training and usually converges on a practical solution.
+                                        </p>
+                                        <p>
+                                        Models are evaluated on the basis of the root mean squared error(RMSE). Its a well accepted method of comparing forecasting errors of different models for a particular variable. he error is key in determining the efficiency of training. It also helps prevent overfitting and can benchmark the instant after which the model starts learning on the data noise.
+                                        </p>
+                                    </section>
+                                    <section>
+                                         <header>
+											<h3>Training Error progression in Nesterov's Momentum</h3>
+										</header>
+                                        <img src="images/syn-data/err_nm.png" alt="" width="400" height="300"/> 
+									</section>
+                                    <section>
+                                         <header>
+											<h3>Training Error progression in Adadelta</h3>
+										</header>
+                                        <img src="images/syn-data/err_adadelta.png" alt="" width="400" height="300"/> 
+									</section>
+                     
+
+								</article>
+							</div>
+							<div class="4u 12u(mobile)" id="sidebar">
+								<hr class="first" />	
+								<hr />
+                                <section>
+									<header>
+										<h3><a href="#">Results for synthetic data</a></h3>
+									</header>
+									<p>
+										Following are the results from the synthetic data testing
+									</p>
+									<div class="row 50%">
+										<div class="4u">
+											<a href="images/syn-data/predicted_n_prev_1_iteration_200.png" class="image fit"><img src="images/syn-data/predicted_n_prev_1_iteration_200.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Regular Sinusoid</h4>
+											<p>
+												Regular sinusoid series alone
+											</p>
+										</div>
+									</div>
+									<div class="row 50%">
+										<div class="4u">
+											<a href="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" class="image fit"><img src="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Regular Sinusoid with Noise</h4>
+											<p>
+												Regular sinusoidal series with 0.2 standard deviation noise
+											</p>
+										</div>
+									</div>
+									<div class="row 50%">
+										<div class="4u">
+											<a href="images/syn-data/irr_predicted_n_prev_1_iteration_200.png" class="image fit"><img src="images/syn-data/irr_predicted_n_prev_1_iteration_200.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Irregular Sinusoid</h4>
+											<p>
+												Irregular sinusoidal series irregularly sampled with 15% points.
+											</p>
+										</div>
+									</div>
+									<div class="row 50%">
+										<div class="4u">
+											<a href="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" class="image fit"><img src="images/syn-data/noise_2_predicted_n_prev_1_iteration_200.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Irregular Noisy Sinusoid</h4>
+											<p> 
+											    Irregular sinusoidal series with noise.
+											</p>
+										</div>
+									</div>
+                                    <div class="row 50%">
+									    <div class="4u">
+											<a href="images/syn-data/mv_gauss/noise-mv.png" class="image fit"><img src="images/syn-data/mv_gauss/noise-mv.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Regular Noisy Gaussian</h4>
+											<p> 
+											    Regular multivariate gaussian with noise.
+											</p>
+										</div>
+									</div>
+                                    <div class="row 50%">
+									    <div class="4u">
+											<a href="images/syn-data/mv_gauss/irregular-mv.png" class="image fit"><img src="images/syn-data/mv_gauss/irregular-mv.png" alt="" /></a>
+										</div>
+										<div class="8u">
+											<h4>Irregular Noisy Gaussian</h4>
+											<p> 
+											    Irregular multivariate gaussian with noise.
+											</p>
+										</div>
+									</div>
+									<footer>	
+									</footer>
+                               </section>
+							</div>
+						</div>
+						<hr />
+
+						<div class="wrapper style1">
+
+					<section id="features" class="container special">
+						<header>
+							<h2>Predicting the Long Period Variables</h2>
+							<p>Using LSTM models to predict Long period variables</p>
+						</header>
+						<div class="row">
+							<article class="4u 12u(mobile) special">
+								<a href="images/lpv/lpv1.png" class="image featured"><img src="images/lpv/lpv1.png" alt="" /></a>
+								<header>
+									<h3><a href="#">Training LSTM on entire LPV dataset</a></h3>
+								</header>
+								<p>
+									The LSTM sees the entire LPV dataset and with a cell state size of 200 and then makes a prediction on the next point.This was to assess if the LSTM could predict the LPV to any degree.								</p>
+							</article>
+							<article class="4u 12u(mobile) special">
+								<a href="images/lpv/lpv2.png" class="image featured"><img src="images/lpv/lpv2.png" alt="" /></a>
+								<header>
+									<h3><a href="#">Training LSTM on training LPV dataset</a></h3>
+								</header>
+								<p>
+									The LSTM is trained on half the LPV dataset and with a cell state size of 50 and then makes a prediction on the next point. This test was carried out to assess model robustness.								</p>
+							</article>
+							<article class="4u 12u(mobile) special">
+								<a href="images/lpv/lpv3.png" class="image featured"><img src="images/lpv/lpv3.png" alt="" /></a>
+								<header>
+									<h3><a href="#">Training LSTM on 20% training LPV dataset</a></h3>
+								</header>
+								<p>
+									The LSTM sees only 20% of the training dataset. The cell state size of 50 and then makes a prediction on the next point. This test was to assess the least data size to get accurate predicitons from the model.							</p>
+							</article>                           
+                          
+						</div>
+
+				</div>
+
+			<!-- Footer -->
+				<div id="footer">
+					<div class="container">
+						<div class="row">	
+
+						</div>
+						<hr />
+						<div class="row">
+							<div class="12u">
+
+								<!-- Contact -->
+									<section class="contact">
+										<header>
+											<h3>Abhishek Malali</h3>
+                                            <img src="images/abhishek.png" alt="" height="120" width="100" />
+										</header>
+										<p> Data Scientist</p>
+										<ul class="icons">	
+											<li><a href="https://www.linkedin.com/in/abhishekmalali" class="icon fa-linkedin"><span class="label">Linkedin</span></a></li>
+                                            <li><a href="https://github.com/abhishekmalali" class="icon fa-github"><span class="label">Linkedin</span></a></li>
+										</ul>
+									</section>
+
+								<!-- Copyright -->
+									<div class="copyright">
+										<ul class="menu">
+											<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+										</ul>
+									</div>
+
+							</div>
+
+						</div>
+					</div>
+				</div>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/jquery.onvisible.min.js"></script>
+			<script src="assets/js/skel.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
+
