@@ -218,19 +218,11 @@
 					<section id="features" class="container special">
 						<header>
 							<h2>Predicting the Long Period Variables</h2>
-							<p>Using LSTM models to predict Long period variables</p>
+							<p>Using LSTM models to predict Long period variables and Supernovae</p>
 						</header>
 						<div class="row">
 							<article class="4u 12u(mobile) special">
-								<a href="images/lpv/lpv1.png" class="image featured"><img src="images/lpv/lpv1.png" alt="" /></a>
-								<header>
-									<h3><a href="#">Training LSTM on entire LPV dataset</a></h3>
-								</header>
-								<p>
-									The LSTM sees the entire LPV dataset and with a cell state size of 200 and then makes a prediction on the next point.This was to assess if the LSTM could predict the LPV to any degree.								</p>
-							</article>
-							<article class="4u 12u(mobile) special">
-								<a href="images/lpv/lpv2.png" class="image featured"><img src="images/lpv/lpv2.png" alt="" /></a>
+								<a href="images/lpv.png" class="image featured"><img src="images/lpv.png" alt="" /></a>
 								<header>
 									<h3><a href="#">Training LSTM on training LPV dataset</a></h3>
 								</header>
@@ -238,12 +230,22 @@
 									The LSTM is trained on half the LPV dataset and with a cell state size of 50 and then makes a prediction on the next point. This test was carried out to assess model robustness.								</p>
 							</article>
 							<article class="4u 12u(mobile) special">
-								<a href="images/lpv/lpv3.png" class="image featured"><img src="images/lpv/lpv3.png" alt="" /></a>
+								<a href="images/impulse.png" class="image featured"><img src="images/impulse.png" alt="" /></a>
 								<header>
-									<h3><a href="#">Training LSTM on 20% training LPV dataset</a></h3>
+									<h3><a href="#">Training LSTM for predicting impulse</a></h3>
 								</header>
 								<p>
-									The LSTM sees only 20% of the training dataset. The cell state size of 50 and then makes a prediction on the next point. This test was to assess the least data size to get accurate predicitons from the model.							</p>
+									The LSTM is trained on impulse data in order to predict the test impulse data.
+                                </p>
+							</article>
+							<article class="4u 12u(mobile) special">
+								<a href="images/1987_pred.png" class="image featured"><img src="images/1987_pred.png" alt="" /></a>
+								<header>
+									<h3><a href="#">Training LSTM for predicting 1987 Supernova</a></h3>
+								</header>
+								<p>
+									The LSTM is trained on the 1987 supernova in order to predict the second half. Currently being analyzed in order to improve performance.							
+                                </p>
 							</article>                           
                           
 						</div>
@@ -263,10 +265,10 @@
 								<!-- Contact -->
 									<section class="contact">
 										<header>
-											<h3>Abhishek Malali</h3>
                                             <img src="images/abhishek.png" alt="" height="120" width="100" />
+                                            <h3>Abhishek Malali</h3>
 										</header>
-										<p> Data Scientist</p>
+										<p> Graduate Student, Harvard University</p>
 										<ul class="icons">	
 											<li><a href="https://www.linkedin.com/in/abhishekmalali" class="icon fa-linkedin"><span class="label">Linkedin</span></a></li>
                                             <li><a href="https://github.com/abhishekmalali" class="icon fa-github"><span class="label">Linkedin</span></a></li>
