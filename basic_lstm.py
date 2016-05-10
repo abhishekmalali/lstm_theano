@@ -6,8 +6,7 @@ from lib import get_params, make_caches, SGD,\
 
 
 class basicLSTM():
-
-    def __init__(self, num_input, num_cells=50, num_output=1):
+    def __init__(self, num_input, num_cells=50, num_output=1, lr=0.01, rho=0.95):
         X = T.matrix('x')
         Y = T.matrix('y')
         eta = T.scalar('eta')
@@ -32,7 +31,7 @@ class basicLSTM():
         """"
         self.updates = momentum(self.cost, self.params, self.caches, self.eta, clip_at=3.0)
         """
-        self.updates,_,_,_,_ = create_optimization_updates(self.cost, self.params, method="adadelta")
+        self.updates,_,_,_,_ = create_optimization_updates(self.cost, self.params, method="adadelta", lr= lr, rho=rho)
         self.train = theano.function([X, Y, alpha], [self.cost, last_cost] ,\
                 updates=self.updates, allow_input_downcast=True)
         self.costfn = theano.function([X, Y, alpha], [self.cost, last_cost],\
