@@ -5,7 +5,7 @@ import numpy as np
 class GenFunction():
 
     def __init__(self):
-        print "GenFunction class activated"
+        return
 
     def regular_sin(self, numPoints, frequency, stopTime, startTime=0,
                     noise=0):
