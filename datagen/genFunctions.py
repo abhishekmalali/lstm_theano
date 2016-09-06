@@ -18,7 +18,7 @@ class GenFunction():
         data_rolled = np.roll(data, -1)[:-1]
         data_mat = np.matrix(data[:-1]).T
         resp_mat = np.matrix(data_rolled).T
-        return data_mat, resp_mat, time_vec
+        return data_mat, resp_mat, time_vec[:-1]
 
     def irregular_sin(self, numPoints, numSelPoints, frequency, stopTime,
                       startTime=0, noise=0):
