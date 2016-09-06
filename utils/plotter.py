@@ -24,7 +24,7 @@ class Plotter():
         plt.savefig(base_path+'Iteration_' + str(it_num) + '.png')
         plt.close()
 
-    def plot_error(self, base_path, noiseSD=0, Training=True):
+    def plot_error(self, base_path, file_name=None, Training=True):
         if Training is True:
             str_val = 'Training'
         else:
@@ -34,7 +34,7 @@ class Plotter():
         plt.xlabel('Iterations')
         plt.ylabel(str_val+' Error')
         plt.savefig(base_path+'error_noise_' +
-                    str(noiseSD)+'.png')
+                    file_name+'.png')
         plt.close()
 
     def create_error_df(self, error_list, save_path=None, file_name=None):
